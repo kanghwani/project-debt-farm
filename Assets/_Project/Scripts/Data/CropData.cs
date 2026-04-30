@@ -1,22 +1,35 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-[CreateAssetMenu(fileName = "New Crop Data", menuName = "Farming/Crop Data")]
-public class CropData : ScriptableObject
+// 유니티 인스펙터 창에 이 클래스의 내용이 보이도록 만들어주는 속성
+[System.Serializable] 
+public class CropData
 {
-    [Header("기본 정보")]
-    public TileData.Crops cropType;      // 작물 종류 (enum)
-    public string cropName;              // 화면에 띄울 진짜 이름 (예: "달콤한 무")
     
-    [Header("성장 데이터")]
-    public int growthDays = 3;           // 다 자라는 데 걸리는 시간
     
-    [Header("경제/물리 데이터")]
-    public int basePrice = 100;          // 출하 상자에서 팔릴 때 가격
-    public float baseWeight = 1.5f;      // 인벤토리에 들어갈 때 무게
+    [Header("Basic Info")]
+    public TileData.Crops cropType;      // 작물 종류
+    public string cropName;              // 화면에 띄울 진짜 이름
     
-    [Header("시각 데이터 (그림)")]
-    public TileBase seededTile;          // 씨앗 상태일 때 타일 그림
-    public TileBase harvestableTile;     // 다 자랐을 때 타일 그림 (★ 매우 중요!)
-    // public Sprite inventoryIcon;      // 나중에 UI에 띄울 아이콘 이미지용
+    [Header("Time Attack Data")]
+    public float requireGrowTime = 10f;  // 수확 가능까지 걸리는 시간
+    public float requireRotTime = 20f;   // 썩기까지 버티는 시간
+    
+    [Header("Economy / Physics")]
+    public int basePrice = 100;          // 팔때 가격
+    public int seedPrice = 50;           // 살때 가격 
+    public float baseWeight = 1.5f;      // 무게
+    
+    [Header("Visual Data")]
+    public TileBase seededTile;          // 씨앗 타일
+    public TileBase harvestableTile;     // 수확 가능 타일
+    public TileBase rottingTile;         // 썩어가는 타일
+    
+    public Sprite cropIcon;
+    
+    [Header("Description")]
+    [TextArea(3, 10)] // 인스펙터에서 여러 줄로 편하게 입력할 수 있게 해줍니다.
+    public string flavorText;
+    
+    
 }

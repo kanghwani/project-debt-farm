@@ -6,13 +6,20 @@ public class TimeManager : MonoBehaviour
 {
     public static TimeManager Instance { get; private set; }
 
-    [Header("시간 설정")] 
-    public float realSecondsPerDay = 120f;
+    [Header("시간 설정")]
+    [Tooltip("기본 하루 길이(초). 80초 = 약 1분 20초")]
+    public float realSecondsPerDay = 80f;
+
+    [Tooltip("속도 배수. 1.0 = 기본, 1.5 = 1.5배 빠름, 2.0 = 2배 빠름. " +
+             "런타임 중에도 즉시 반영됩니다.")]
+    [Range(0.25f, 4f)]
+    public float daySpeedMultiplier = 1f;
+
     public int startHour = 6;
     public int endHour = 24;
-    
+
     private float elapsedTime = 0f;
-    // ★ 추가: 이전 시간을 기억해서 중복 실행을 막는 변수
+    //  이전 시간을 기억해서 중복 실행을 막는 변수
     private int lastDisplayedHour = -1; 
     
     public int CurrentDay { get; private set; } = 1;
@@ -21,6 +28,7 @@ public class TimeManager : MonoBehaviour
     public static event Action<int, int> OnTimeChanged;
     public static event Action OnMidnight;
     public static event Action OnNightTension;
+    // OnDebtSettlement 제거 — DailySettlementManager.CompleteSettlement()에서 직접 처리
 
     private void Awake()
     {
@@ -30,7 +38,8 @@ public class TimeManager : MonoBehaviour
 
     private void Update()
     {
-        elapsedTime += Time.deltaTime;
+        // daySpeedMultiplier가 클수록 시간이 빨리 흐름
+        elapsedTime += Time.deltaTime * Mathf.Max(0.01f, daySpeedMultiplier);
         float dayProgress = elapsedTime / realSecondsPerDay;
         float totalHoursInDay = endHour - startHour;
         float currentTotalHours = startHour + (dayProgress * totalHoursInDay);
@@ -59,19 +68,50 @@ public class TimeManager : MonoBehaviour
         }
     }
     
+    // SaveManager가 저장된 날짜를 복원할 때
+    public void LoadDay(int day)
+    {
+        CurrentDay = day;
+        Debug.Log($"[SaveManager] 날짜 복원: {CurrentDay}일차");
+    }
+
+
+    // event는 선언한 클래스 안에서만 Invoke 가능하므로 이 메서드로 우회
+    [ContextMenu("⚡ 하루 강제 종료 (테스트)")]
+    public void DEBUG_ForceNextDay() => GoToNextDay();
+
+    public void DEBUG_ForceTimeSkip()
+    {
+        // 총 인게임 시간 계산 
+        float totalHoursInDay = endHour - startHour;
+        
+        float secondsPerInGameHour = realSecondsPerDay / totalHoursInDay;
+        
+        elapsedTime += (secondsPerInGameHour * 4 );
+
+    }
+
     private void GoToNextDay()
     {
         elapsedTime = 0f;
-        CurrentDay++;
-        // 다음 날을 위해 기억하던 시간을 초기화
-        lastDisplayedHour = -1; 
-        
-        // 자정 정산 이벤트 먼저 발생
-        OnMidnight?.Invoke();
+        lastDisplayedHour = -1;
 
-        // 작물 성장을 위한 다음 날 알림 발생
-        OnDayChanged?.Invoke(); 
-        
+        // ── 순서 중요 ────────────────────────────────────────────────────────
+        // 1) OnMidnight만 발사 → DailySettlementManager가 timeScale=0 + UI 시작
+        //    CurrentDay는 아직 이전 날 값 → DebtManager.GetTodayDebt()가 올바른 날짜 사용
+        // 2) CurrentDay++, OnDayChanged, SaveAllData는
+        //    DailySettlementManager.CompleteSettlement() 안의 AdvanceToNextDay()로 이동
+        OnMidnight?.Invoke();
+    }
+
+    /// <summary>
+    /// DailySettlementManager.CompleteSettlement()에서 호출.
+    /// 정산 UI가 완전히 끝난 뒤 날짜를 올리고 OnDayChanged를 발사한다.
+    /// </summary>
+    public void AdvanceToNextDay()
+    {
+        CurrentDay++;
+        OnDayChanged?.Invoke();
         Debug.Log($"[TimeManager] {CurrentDay}일차 아침이 밝았습니다.");
     }
 }

@@ -28,6 +28,14 @@ ExportedObj/
 *.opendb
 *.VC.db
 
+# Claude Code
+.claude/
+AGENTS.md
+
+# Unity crash dumps
+mono_crash.*
+*.blob
+
 # OS generated files
 .DS_Store
 .DS_Store?
