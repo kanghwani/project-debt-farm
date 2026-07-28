@@ -95,7 +95,7 @@ public class ActionFeedback : MonoBehaviour
 
     private IEnumerator PlayPerfect(ToolType tool, Action onComplete)
     {
-        GameStatsTracker.Instance?.TrackPerfect();
+        // BunkerBloom 전환: GameStatsTracker 의존성 제거
         // SFX는 TimingBarUI.Confirm()에서 스페이스 떼는 순간 이미 재생됨
         if (spriteTransform != null)
         {

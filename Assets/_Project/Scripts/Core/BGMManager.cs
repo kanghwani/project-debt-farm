@@ -83,8 +83,8 @@ public class BGMManager : MonoBehaviour
 
     private void OnEnable()
     {
-        TimeManager.OnTimeChanged    += OnTimeChanged;
-        DebtManager.OnGameOver       += OnGameOver;
+        // BunkerBloom 전환: TimeManager·DebtManager 의존성 제거
+        // 향후 BunkerBloomEvents.OnTurnStarted 구독으로 교체 예정
     }
 
     private void Start()
@@ -96,8 +96,7 @@ public class BGMManager : MonoBehaviour
 
     private void OnDisable()
     {
-        TimeManager.OnTimeChanged    -= OnTimeChanged;
-        DebtManager.OnGameOver       -= OnGameOver;
+        // BunkerBloom 전환: TimeManager·DebtManager 의존성 제거
     }
 
     // ── 씬별 진입점 (외부에서 호출) ──────────────────────────────────────────
@@ -110,15 +109,12 @@ public class BGMManager : MonoBehaviour
         Play(menuClip);
     }
 
-    /// <summary>게임 씬 진입 시 호출 — 현재 시각 기준 BGM 선택</summary>
+    /// <summary>게임 씬 진입 시 호출 — BunkerBloom 전환 후엔 day BGM만 재생.</summary>
     public void PlayGameBGM()
     {
         _settlementActive = false;
         _gameOverActive   = false;
-        if (TimeManager.Instance != null)
-            ApplyTimeBasedBGM(TimeManager.Instance.startHour);
-        else
-            Play(dayClip);
+        Play(dayClip);
     }
 
     /// <summary>자정 정산 시작 시 DailySettlementManager에서 호출</summary>
